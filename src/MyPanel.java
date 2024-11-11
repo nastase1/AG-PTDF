@@ -4,14 +4,18 @@ import  java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
-import javax.swing.JCheckBox;
+import javax.swing.*;
+
 import static java.lang.Math.sqrt;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class MyPanel extends JPanel {
-    private int nodeNr=1;
+    private int nodeNr=0;
     private int nodeDiam=30;
     private Vector<Node> listaNoduri;
     private Vector<Arc> listaArce;
@@ -20,9 +24,10 @@ public class MyPanel extends JPanel {
     boolean isDragging=false;
     boolean isOriented=false;
     private Node selectedNode=null;
-    private Point offset=null;
 
     private JCheckBox orientedCheckBox;
+
+    private JButton topologicalSortButton;
 
     public MyPanel(){
         listaNoduri=new Vector<Node>();
@@ -35,10 +40,16 @@ public class MyPanel extends JPanel {
             isOriented=orientedCheckBox.isSelected();
             listaNoduri.clear();
             listaArce.clear();
-            nodeNr=1;
+            nodeNr=0;
             repaint();
         });
         this.add(orientedCheckBox);
+
+        topologicalSortButton = new JButton("Sortare topologică");
+        topologicalSortButton.setBounds(140, 10, 150, 30);
+        topologicalSortButton.addActionListener(e -> performTopologicalSort());
+        this.add(topologicalSortButton);
+
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -60,6 +71,9 @@ public class MyPanel extends JPanel {
                         Arc arc = new Arc(new Point(startNode.getCoordX() + nodeDiam / 2, startNode.getCoordY() + nodeDiam / 2),
                                 new Point(endNode.getCoordX() + nodeDiam / 2, endNode.getCoordY() + nodeDiam / 2), isOriented);
                         listaArce.add(arc);
+
+                        saveAdjacencyList("lista_adiacenta.txt");
+                        saveAdjacencyMatrix("matrice_adiacenta.txt");
                     }
                 }
                 pointStart=null;
@@ -109,6 +123,9 @@ public class MyPanel extends JPanel {
         nodeNr++;
         repaint();
 
+        saveAdjacencyList("lista_adiacenta.txt");
+        saveAdjacencyMatrix("matrice_adiacenta.txt");
+
     }
 
     // se execută atunci când apelăm repaint()
@@ -130,4 +147,111 @@ public class MyPanel extends JPanel {
         }
     }
 
+    // Metoda pentru a obține matricea de adiacență
+    public int[][] getAdjacencyMatrix() {
+        int nrNodes = listaNoduri.size(); // Numărul de noduri
+        int[][] matrix = new int[nrNodes][nrNodes];
+
+        for (Arc arc : listaArce) {
+            // Obține coordonatele start și end din obiectul arc
+            Point startPoint = arc.getStart();
+            Point endPoint = arc.getEnd();
+
+            // Obține nodurile corespunzătoare pe baza coordonatelor
+            Node startNode = getNodeAtPosition(startPoint.x, startPoint.y);
+            Node endNode = getNodeAtPosition(endPoint.x, endPoint.y);
+
+            if (startNode != null && endNode != null) {
+                int startIndex = listaNoduri.indexOf(startNode);
+                int endIndex = listaNoduri.indexOf(endNode);
+
+                matrix[startIndex][endIndex] = 1; // Adaugă un arc în matrice
+                if(!isOriented)
+                    matrix[endIndex][startIndex] = 1; // Dacă graful este neorientat, adaugă și invers
+            }
+        }
+        return matrix;
+    }
+
+    // Metoda pentru a salva matricea de adiacență într-un fișier
+    public void saveAdjacencyMatrix(String filename) {
+        int[][] matrix = getAdjacencyMatrix();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write(String.valueOf(listaNoduri.size())); // Scrie numărul de noduri pe prima linie
+            writer.newLine(); // Trecere la urmatoarea linie
+
+            for (int i = 0; i < matrix.length; i++) {
+                for (int j = 0; j < matrix[i].length; j++) {
+                    writer.write(String.valueOf(matrix[i][j]) + " ");
+                }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); // Gestionează excepțiile
+        }
+    }
+
+    // Method to generate the adjacency list
+    public List<List<Integer>> getAdjacencyList() {
+        int nodeCount = listaNoduri.size();
+        List<List<Integer>> adjacencyList = new ArrayList<>();
+
+        // Initialize the adjacency list
+        for (int i = 0; i < nodeCount; i++) {
+            adjacencyList.add(new ArrayList<>());
+        }
+
+        // Populate the adjacency list based on arcs
+        for (Arc arc : listaArce) {
+            Node startNode = getNodeAtPosition(arc.getStart().x, arc.getStart().y);
+            Node endNode = getNodeAtPosition(arc.getEnd().x, arc.getEnd().y);
+
+            if (startNode != null && endNode != null) {
+                int startIndex = listaNoduri.indexOf(startNode);
+                int endIndex = listaNoduri.indexOf(endNode);
+
+                adjacencyList.get(startIndex).add(endIndex);
+
+                if (!isOriented) {
+                    // For undirected graph, add reverse edge
+                    adjacencyList.get(endIndex).add(startIndex);
+                }
+            }
+        }
+
+        return adjacencyList;
+    }
+
+    // Method to save the adjacency list to a file
+    public void saveAdjacencyList(String filename) {
+        List<List<Integer>> adjacencyList = getAdjacencyList();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            // Write the number of nodes as the first line
+            writer.write(String.valueOf(listaNoduri.size()));
+            writer.newLine();
+
+            // Write each node's adjacency list
+            for (int i = 0; i < adjacencyList.size(); i++) {
+                writer.write(i + ": ");
+                for (int neighbor : adjacencyList.get(i)) {
+                    writer.write(neighbor + " ");
+                }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void performTopologicalSort(){
+        System.out.println("Starting topological sort...");
+        List<List<Integer>> adjacencyList = getAdjacencyList();
+        int startNode = 0;
+        int size = listaNoduri.size();
+
+        TopologicalSort.topologicalSort(size,startNode,adjacencyList);
+    }
+
 }
+
