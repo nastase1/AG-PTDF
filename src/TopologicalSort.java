@@ -1,5 +1,6 @@
 import java.util.*;
 
+
 public class TopologicalSort {
     private static final int INF = Integer.MAX_VALUE;
     private static int time = 1;
@@ -8,7 +9,7 @@ public class TopologicalSort {
         System.out.println("Initializing topological sort for " + N + " nodes...");
         Set<Integer> U = new HashSet<>();
         Set<Integer> V = new HashSet<>();
-        Set<Integer> W = new LinkedHashSet<>();
+        List<Integer> W = new ArrayList<>();
         int[] p = new int[N];
         int[] t1 = new int[N];
         int[] t2 = new int[N];
@@ -21,7 +22,8 @@ public class TopologicalSort {
             p[y] = 0;
         }
         t1[s] = time++;
-
+        U.remove(s);
+        V.add(s);
         while (!U.isEmpty()) {
             while (!V.isEmpty()) {
                 int x = V.iterator().next();
@@ -37,13 +39,12 @@ public class TopologicalSort {
 
                     } else if (V.contains(y)) {
                         System.out.println("Cycle detected at node: " + y);
+                        return;
                     }
-                    V.remove(x);
-                    W.add(x);
-                    t2[x] = time++;
-
                 }
-
+                V.remove(x);
+                W.add(x);
+                t2[x] = time++;
             }
 
 
@@ -57,8 +58,15 @@ public class TopologicalSort {
         }
 
         System.out.println("Topological Order:");
-        for (int node : W) {
-            System.out.print((node+1) + " ");
+//        List<Integer> topologicalOrder=new ArrayList<>(W);
+//        Collections.reverse(topologicalOrder);
+//        for (int node : topologicalOrder) {
+//            System.out.print((node+1) + " ");
+//        }
+//        System.out.println();
+
+        for(int node:W){
+            System.out.println((node+1) + " ");
         }
         System.out.println();
     }

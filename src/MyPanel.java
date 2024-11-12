@@ -130,7 +130,7 @@ public class MyPanel extends JPanel {
 
     // se execută atunci când apelăm repaint()
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // apelez metoda paintComponent din clasa de bază
+        super.paintComponent(g);
         g.drawString("This is my Graph!", 10, 20);
         // desenează arcele existente în listă
         for (Arc a : listaArce) {
@@ -149,15 +149,13 @@ public class MyPanel extends JPanel {
 
     // Metoda pentru a obține matricea de adiacență
     public int[][] getAdjacencyMatrix() {
-        int nrNodes = listaNoduri.size(); // Numărul de noduri
+        int nrNodes = listaNoduri.size();
         int[][] matrix = new int[nrNodes][nrNodes];
 
         for (Arc arc : listaArce) {
-            // Obține coordonatele start și end din obiectul arc
             Point startPoint = arc.getStart();
             Point endPoint = arc.getEnd();
 
-            // Obține nodurile corespunzătoare pe baza coordonatelor
             Node startNode = getNodeAtPosition(startPoint.x, startPoint.y);
             Node endNode = getNodeAtPosition(endPoint.x, endPoint.y);
 
@@ -165,20 +163,19 @@ public class MyPanel extends JPanel {
                 int startIndex = listaNoduri.indexOf(startNode);
                 int endIndex = listaNoduri.indexOf(endNode);
 
-                matrix[startIndex][endIndex] = 1; // Adaugă un arc în matrice
+                matrix[startIndex][endIndex] = 1;
                 if(!isOriented)
-                    matrix[endIndex][startIndex] = 1; // Dacă graful este neorientat, adaugă și invers
+                    matrix[endIndex][startIndex] = 1;
             }
         }
         return matrix;
     }
 
-    // Metoda pentru a salva matricea de adiacență într-un fișier
     public void saveAdjacencyMatrix(String filename) {
         int[][] matrix = getAdjacencyMatrix();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            writer.write(String.valueOf(listaNoduri.size())); // Scrie numărul de noduri pe prima linie
-            writer.newLine(); // Trecere la urmatoarea linie
+            writer.write(String.valueOf(listaNoduri.size()));
+            writer.newLine();
 
             for (int i = 0; i < matrix.length; i++) {
                 for (int j = 0; j < matrix[i].length; j++) {
@@ -187,21 +184,18 @@ public class MyPanel extends JPanel {
                 writer.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace(); // Gestionează excepțiile
+            e.printStackTrace();
         }
     }
 
-    // Method to generate the adjacency list
     public List<List<Integer>> getAdjacencyList() {
         int nodeCount = listaNoduri.size();
         List<List<Integer>> adjacencyList = new ArrayList<>();
 
-        // Initialize the adjacency list
         for (int i = 0; i < nodeCount; i++) {
             adjacencyList.add(new ArrayList<>());
         }
 
-        // Populate the adjacency list based on arcs
         for (Arc arc : listaArce) {
             Node startNode = getNodeAtPosition(arc.getStart().x, arc.getStart().y);
             Node endNode = getNodeAtPosition(arc.getEnd().x, arc.getEnd().y);
@@ -213,7 +207,6 @@ public class MyPanel extends JPanel {
                 adjacencyList.get(startIndex).add(endIndex);
 
                 if (!isOriented) {
-                    // For undirected graph, add reverse edge
                     adjacencyList.get(endIndex).add(startIndex);
                 }
             }
@@ -222,16 +215,13 @@ public class MyPanel extends JPanel {
         return adjacencyList;
     }
 
-    // Method to save the adjacency list to a file
     public void saveAdjacencyList(String filename) {
         List<List<Integer>> adjacencyList = getAdjacencyList();
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            // Write the number of nodes as the first line
             writer.write(String.valueOf(listaNoduri.size()));
             writer.newLine();
 
-            // Write each node's adjacency list
             for (int i = 0; i < adjacencyList.size(); i++) {
                 writer.write((i+1) + ": ");
                 for (int neighbor : adjacencyList.get(i)) {
