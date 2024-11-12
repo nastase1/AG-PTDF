@@ -15,7 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class MyPanel extends JPanel {
-    private int nodeNr=0;
+    private int nodeNr=1;
     private int nodeDiam=30;
     private Vector<Node> listaNoduri;
     private Vector<Arc> listaArce;
@@ -40,7 +40,7 @@ public class MyPanel extends JPanel {
             isOriented=orientedCheckBox.isSelected();
             listaNoduri.clear();
             listaArce.clear();
-            nodeNr=0;
+            nodeNr=1;
             repaint();
         });
         this.add(orientedCheckBox);
@@ -233,9 +233,9 @@ public class MyPanel extends JPanel {
 
             // Write each node's adjacency list
             for (int i = 0; i < adjacencyList.size(); i++) {
-                writer.write(i + ": ");
+                writer.write((i+1) + ": ");
                 for (int neighbor : adjacencyList.get(i)) {
-                    writer.write(neighbor + " ");
+                    writer.write((neighbor+1) + " ");
                 }
                 writer.newLine();
             }

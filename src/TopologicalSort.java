@@ -22,9 +22,9 @@ public class TopologicalSort {
         }
         t1[s] = time++;
 
-        while (W.size() != N) {
+        while (!U.isEmpty()) {
             while (!V.isEmpty()) {
-                int x = Collections.max(V);
+                int x = V.iterator().next();
                 V.remove(x);
 
                 for (int y : adj.get(x)) {
@@ -38,10 +38,11 @@ public class TopologicalSort {
                     } else if (V.contains(y)) {
                         System.out.println("Cycle detected at node: " + y);
                     }
+                    V.remove(x);
+                    W.add(x);
+                    t2[x] = time++;
+
                 }
-                V.remove(x);
-                W.add(x);
-                t2[x] = time++;
 
             }
 
@@ -56,13 +57,9 @@ public class TopologicalSort {
         }
 
         System.out.println("Topological Order:");
-        List<Integer> topologicalOrder = new ArrayList<>(W);
-        Collections.reverse(topologicalOrder);
-
-        for (int node : topologicalOrder) {
-            System.out.print(node + " ");
+        for (int node : W) {
+            System.out.print((node+1) + " ");
         }
         System.out.println();
     }
-
 }
