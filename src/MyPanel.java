@@ -24,6 +24,7 @@ public class MyPanel extends JPanel {
     boolean isDragging=false;
     boolean isOriented=false;
     private Node selectedNode=null;
+    private Node rootNode=null;
 
     private JCheckBox orientedCheckBox;
 
@@ -49,6 +50,11 @@ public class MyPanel extends JPanel {
         topologicalSortButton.setBounds(140, 10, 150, 30);
         topologicalSortButton.addActionListener(e -> performTopologicalSort());
         this.add(topologicalSortButton);
+
+        JButton determineRootButton = new JButton("Determină rădăcina");
+        determineRootButton.setBounds(140, 50, 150, 30);
+        determineRootButton.addActionListener(e -> determineRoot());
+        this.add(determineRootButton);
 
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -131,23 +137,30 @@ public class MyPanel extends JPanel {
     // se execută atunci când apelăm repaint()
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawString("This is my Graph!", 10, 20);
-        // desenează arcele existente în listă
+
+        // Draw the arcs
         for (Arc a : listaArce) {
             a.drawArc(g);
         }
-        // desenează arcul curent; cel care e în curs de desenare
+
+        // Draw the current arc being dragged
         if (pointStart != null) {
             g.setColor(Color.RED);
             g.drawLine(pointStart.x, pointStart.y, pointEnd.x, pointEnd.y);
         }
-        // desenează lista de noduri
-        for (int i = 0; i < listaNoduri.size(); i++) {
-            listaNoduri.elementAt(i).drawNode(g, nodeDiam);
+
+        // Draw each node with a different color for the root
+        for (Node node : listaNoduri) {
+            if (node == rootNode) {
+                g.setColor(Color.BLUE);  // Color root node as green
+            } else {
+                g.setColor(Color.RED);    // Color other nodes as red
+            }
+            node.drawNode(g, nodeDiam);
         }
     }
 
-    // Metoda pentru a obține matricea de adiacență
+
     public int[][] getAdjacencyMatrix() {
         int nrNodes = listaNoduri.size();
         int[][] matrix = new int[nrNodes][nrNodes];
@@ -237,10 +250,30 @@ public class MyPanel extends JPanel {
     private void performTopologicalSort(){
         System.out.println("Starting topological sort...");
         List<List<Integer>> adjacencyList = getAdjacencyList();
-        int startNode = 0;
         int size = listaNoduri.size();
+        int startNode=0;
 
-        TopologicalSort.topologicalSort(size,startNode,adjacencyList);
+        //TopologicalSort.topologicalSort(size,adjacencyList);
+        if(!isOriented) {
+            System.out.println("Graful nu este orientat");
+            return;
+        }
+        else
+            TopologicalSort.topologicalSort(size,adjacencyList);
+    }
+
+    private void determineRoot(){
+        TreeUtils treeUtils = new TreeUtils(listaNoduri.size(),getAdjacencyList());
+        Integer rootIndex = treeUtils.findRoot();
+        if (rootIndex != null) {
+            rootNode = listaNoduri.get(rootIndex);
+            JOptionPane.showMessageDialog(this, "Radacina arborescentei este nodul " + (rootIndex +1));
+        } else {
+            rootNode = null;
+            JOptionPane.showMessageDialog(this, "Nu se poate determina o radacina unica/Graful nu este un arbore.");
+        }
+
+        repaint();
     }
 
 }

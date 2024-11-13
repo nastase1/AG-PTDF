@@ -38,7 +38,6 @@ public class Node {
     }
 
     public void drawNode(Graphics g, int nodeDiam){
-        g.setColor(Color.RED);
         g.setFont(new Font("TimesRoman",Font.BOLD,15));
 
         g.fillOval(coordX,coordY,nodeDiam,nodeDiam);
